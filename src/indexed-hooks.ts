@@ -1,23 +1,10 @@
 import { useMemo } from "react";
-import { DBOperations, Key, CreateObjectStore } from "./indexed-db";
+import { CreateObjectStore, DBOperations, IndexedDBConfig, Key, Model, StoreIdKey, StoreName } from "./indexed-db";
 
-export interface IndexedDBProps {
-  name: string;
-  version: number;
-  objectStoresMeta: ObjectStoreMeta[];
-}
-
-export interface ObjectStoreMeta {
-  store: string;
-  storeConfig: { keyPath: string; autoIncrement: boolean; [key: string]: any };
-  storeSchema: ObjectStoreSchema[];
-}
-
-export interface ObjectStoreSchema {
-  name: string;
-  keypath: string;
-  options: { unique: boolean; [key: string]: any };
-}
+/**
+ * @deprecated use IndexedDBConfig
+ */
+export type IndexedDBProps = IndexedDBConfig;
 
 export interface useIndexedDB {
   dbName: string;
@@ -30,18 +17,18 @@ const indexeddbConfiguration: { version: number; name: string } = {
   name: null,
 };
 
-export function initDB({ name, version, objectStoresMeta }: IndexedDBProps) {
+export function initDB({ name, version, objectStoresMeta }: IndexedDBConfig) {
   indexeddbConfiguration.name = name;
   indexeddbConfiguration.version = version;
   Object.freeze(indexeddbConfiguration);
   CreateObjectStore(name, version, objectStoresMeta);
 }
 
-export function useIndexedDB(objectStore: string): {
-  add: <T = any>(value: T, key?: any) => Promise<number>;
-  getByID: <T = any>(id: number | string) => Promise<T>;
-  getAll: <T = any>() => Promise<T[]>;
-  update: <T = any>(value: T, key?: any) => Promise<any>;
+export function useIndexedDB<DB extends IndexedDBConfig, SN extends StoreName<DB> = StoreName<DB>>(objectStore: SN): {
+  add: <T extends Model<DB, SN>>(value: Omit<T, StoreIdKey<DB, SN>>, key?: any) => Promise<number>;
+  getByID: <T extends Model<DB, SN>>(id: number | string) => Promise<T>;
+  getAll: <T extends Model<DB, SN>>() => Promise<T[]>;
+  update: <T extends Model<DB, SN>>(value: T, key?: any) => Promise<any>;
   deleteRecord: (key: Key) => Promise<any>;
   openCursor: (
     cursorCallback: (event: Event) => void,

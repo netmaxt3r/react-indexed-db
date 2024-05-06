@@ -1,24 +1,8 @@
 import React, { ReactNode } from "react";
-import { DBOperations, openDatabase, Key } from "./indexed-db";
+import { DBOperations, IndexedDBConfig, Key, ObjectStoreMeta, ObjectStoreSchema, openDatabase } from "./indexed-db";
 
-interface IndexedDBProps {
-  name: string;
-  version: number;
-  children: ReactNode;
-  objectStoresMeta: ObjectStoreMeta[];
-}
 
-interface ObjectStoreMeta {
-  store: string;
-  storeConfig: { keyPath: string; autoIncrement: boolean; [key: string]: any };
-  storeSchema: ObjectStoreSchema[];
-}
-
-interface ObjectStoreSchema {
-  name: string;
-  keypath: string;
-  options: { unique: boolean; [key: string]: any };
-}
+type IndexedDBProps = React.PropsWithChildren<IndexedDBConfig>
 
 const IndexedDBContext = React.createContext<{
   db: any;
@@ -47,7 +31,7 @@ export function IndexedDB({
         schema.storeConfig,
       );
       schema.storeSchema.forEach((schema: ObjectStoreSchema) => {
-        objectStore.createIndex(schema.name, schema.keypath, schema.options);
+        objectStore.createIndex(schema.name, schema.keyPath, schema.options);
       });
     });
   });

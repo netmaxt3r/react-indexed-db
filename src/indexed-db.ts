@@ -1,6 +1,4 @@
-import { useCallback } from "react";
 import { validateBeforeTransaction } from "./Utils";
-import { ObjectStoreMeta, ObjectStoreSchema } from "./indexed-hooks";
 import { createReadwriteTransaction } from "./createReadwriteTransaction";
 import { createReadonlyTransaction } from "./createReadonlyTransaction";
 
@@ -15,6 +13,7 @@ export interface IndexDetails {
   indexName: string;
   order: string;
 }
+
 const indexedDB: IDBFactory =
   window.indexedDB ||
   (<any>window).mozIndexedDB ||
@@ -47,11 +46,11 @@ export function openDatabase(
 export function CreateObjectStore(
   dbName: string,
   version: number,
-  storeSchemas: ObjectStoreMeta[],
+  storeSchemas: readonly ObjectStoreMeta[],
 ) {
   const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
 
-  request.onupgradeneeded = function (event: IDBVersionChangeEvent) {
+  request.onupgradeneeded = function(event: IDBVersionChangeEvent) {
     const database: IDBDatabase = (event.target as any).result;
     storeSchemas.forEach((storeSchema: ObjectStoreMeta) => {
       if (!database.objectStoreNames.contains(storeSchema.store)) {
@@ -60,13 +59,13 @@ export function CreateObjectStore(
           storeSchema.storeConfig,
         );
         storeSchema.storeSchema.forEach((schema: ObjectStoreSchema) => {
-          objectStore.createIndex(schema.name, schema.keypath, schema.options);
+          objectStore.createIndex(schema.name, schema.keyPath, schema.options);
         });
       }
     });
     database.close();
   };
-  request.onsuccess = function (e: any) {
+  request.onsuccess = function(e: any) {
     e.target.result.close();
   };
 }
@@ -91,7 +90,7 @@ export function DBOperations(
 
         request.onerror = (error) => reject(error);
 
-        request.onsuccess = function ({ target: { result } }: any) {
+        request.onsuccess = function({ target: { result } }: any) {
           resolve(result as T[]);
         };
       });
@@ -109,7 +108,7 @@ export function DBOperations(
         );
         const request = store.get(id);
 
-        request.onsuccess = function (event: Event) {
+        request.onsuccess = function(event: Event) {
           resolve((event.target as any).result as T);
         };
       });
@@ -244,3 +243,83 @@ export enum DBMode {
   readonly = "readonly",
   readwrite = "readwrite",
 }
+
+/**
+ *   interface for data types can be extended with
+ *   @example
+ *   declare module 'react-indexed-db' {
+ *     interface StoreDataTypes {
+ *         myType: MyCustomType;
+ *         myTypes: MyCustomType[];
+ *     }
+ *   }
+ */
+export interface StoreDataTypes {
+  string: string;
+  number: number;
+  boolean: boolean;
+  object: object;
+  bigint: bigint;
+  date: Date;
+}
+
+type ColumnTypes = keyof StoreDataTypes;
+export type ColumnType<K extends ColumnTypes> = StoreDataTypes[K]
+
+export interface ObjectStoreColumn {
+  keyPath: string;
+  type?: ColumnTypes;
+}
+
+export interface ObjectStoreSchema {
+  name: string;
+  keyPath: string;
+  type?: ColumnTypes;
+  options: { unique: boolean; [key: string]: any };
+}
+
+export interface ObjectStoreMeta {
+  store: string;
+  storeConfig: { keyPath: string; autoIncrement: boolean; [key: string]: any };
+  storeSchema: readonly ObjectStoreSchema[];
+  extraColumns?: readonly ObjectStoreColumn[];
+}
+
+export interface IndexedDBConfig {
+  name: string;
+  version: number;
+  objectStoresMeta: readonly ObjectStoreMeta[];
+}
+
+
+export type ObjectStore<DB extends IndexedDBConfig> = DB["objectStoresMeta"];
+export type StoreName<DB extends IndexedDBConfig> = ObjectStore<DB>[number]["store"];
+export type StoreMeta<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  Extract<ObjectStore<DB>[number], { store: SN }>;
+
+export type StoreConfig<DB extends IndexedDBConfig, SN extends StoreName<DB>> = StoreMeta<DB, SN>["storeConfig"]
+export type StoreIdKey<DB extends IndexedDBConfig, SN extends StoreName<DB>> = StoreConfig<DB, SN>["keyPath"];
+export type StoreIdModel<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  { [k in StoreIdKey<DB, SN>]: string }
+
+type StoreSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>> = StoreMeta<DB, SN>["storeSchema"]
+export type StoreIxKeys<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  StoreSchema<DB, SN>[number]["keyPath"];
+export type StoreIxSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>, K extends StoreIxKeys<DB, SN>> =
+  Extract<StoreSchema<DB, SN>[number], { keyPath: K }>;
+export  type StoreIxModel<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  { [k in StoreIxKeys<DB, SN>]: ColumnType<StoreIxSchema<DB, SN, k>["type"]> }
+
+
+type StoreXtSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>> = StoreMeta<DB, SN>["extraColumns"]
+export type StoreXKeys<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  StoreXtSchema<DB, SN>[number]["keyPath"];
+export type StoreXSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>, K extends StoreIxKeys<DB, SN>> =
+  Extract<StoreXtSchema<DB, SN>[number], { keyPath: K }>;
+export  type StoreXModel<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  { [k in StoreXKeys<DB, SN>]: ColumnType<StoreXSchema<DB, SN, k>["type"]> }
+
+
+export type Model<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
+  StoreIdModel<DB, SN> & StoreIxModel<DB, SN> & StoreXModel<DB, SN>;
+
