@@ -1,0 +1,1 @@
+{"version":3,"file":"createReadonlyTransaction.js","sourceRoot":"","sources":["../src/createReadonlyTransaction.ts"],"names":[],"mappings":";;;AAAA,2CAAsC;AACtC,yEAAwE;AAExE,SAAgB,yBAAyB,CACvC,QAAqB,EACrB,KAAa,EACb,OAAgC,EAChC,MAA0B;IAE1B,OAAO,IAAA,qDAAyB,EAC9B,QAAQ,EACR,mBAAM,CAAC,QAAQ,EACf,KAAK,EACL,OAAO,EACP,MAAM,CACP,CAAC;AACJ,CAAC;AAbD,8DAaC"}

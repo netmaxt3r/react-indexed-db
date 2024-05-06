@@ -1,0 +1,1 @@
+{"version":3,"file":"createReadwriteTransaction.js","sourceRoot":"","sources":["../src/createReadwriteTransaction.ts"],"names":[],"mappings":";;;AAAA,2CAAsC;AACtC,yEAAwE;AAExE,SAAgB,0BAA0B,CACxC,QAAqB,EACrB,KAAa,EACb,OAA0B,EAC1B,MAA0B;IAE1B,OAAO,IAAA,qDAAyB,EAC9B,QAAQ,EACR,mBAAM,CAAC,SAAS,EAChB,KAAK,EACL,OAAO,EACP,MAAM,CACP,CAAC;AACJ,CAAC;AAbD,gEAaC"}
