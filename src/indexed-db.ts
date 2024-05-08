@@ -314,7 +314,7 @@ export  type StoreIxModel<DB extends IndexedDBConfig, SN extends StoreName<DB>> 
 type StoreXtSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>> = StoreMeta<DB, SN>["extraColumns"]
 export type StoreXKeys<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
   StoreXtSchema<DB, SN>[number]["keyPath"];
-export type StoreXSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>, K extends StoreIxKeys<DB, SN>> =
+export type StoreXSchema<DB extends IndexedDBConfig, SN extends StoreName<DB>, K extends StoreXKeys<DB, SN>> =
   Extract<StoreXtSchema<DB, SN>[number], { keyPath: K }>;
 export  type StoreXModel<DB extends IndexedDBConfig, SN extends StoreName<DB>> =
   { [k in StoreXKeys<DB, SN>]: ColumnType<StoreXSchema<DB, SN, k>["type"]> }
